@@ -1,25 +1,19 @@
 #include <stdio.h>
-#include <fcntl.h>  // For open()
-#include <unistd.h> // For close()
-
+#include <fcntl.h>
+#include <unistd.h>
 #include "get_next_line.h"
 
 int main(void)
 {
-    int fd = open("test_file.txt", O_RDONLY);  // Open the test file for reading
-    if (fd == -1)
-    {
-        perror("Error opening file");
-        return 1;
-    }
+    int fd = open("test_file.txt", O_RDONLY);
+    char *l;
 
-    char *line;
-    while ((line = get_next_line(fd)) != NULL)
-    {
-        printf("Line: %s", line);  // Print each line read
-        free(line);  // Free the memory allocated for the line
-    }
+    if (fd < 0)
+        return (perror("Error opening file"), 1);
 
-    close(fd);  // Close the file when done
+    while ((l = get_next_line(fd)))
+        printf("Line: %s", l), free(l);
+
+    close(fd);
     return 0;
 }
