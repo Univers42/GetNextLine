@@ -1,75 +1,89 @@
 #include "get_next_line.h"
 
-static char *get_remainder_for_fd(int fd)
+char *get_next_line_bonus(int fd)
 {
-    static char *remainder[1024];  // Array to hold the remainder for each fd
-
-    // If remainder[fd] is NULL, initialize it
-    if (!remainder[fd])
-        remainder[fd] = ft_strdup("");
-    
-    return remainder[fd];
-}
-
-char *get_next_line(int fd)
-{
-    char *buffer;
-    char *line;
+    static char *remainders[1024];  // Static array to handle multiple file descriptors
+    char *buffer, *line, *newline_pos, *new_remainder;
     int bytes_read;
-    size_t i;
-    static char *remainder[1024]; // Array for tracking remainder of each fd
 
-    // Allocate memory for the buffer
-    buffer = malloc(250 + 1);  // Adjust to the buffer size you want
-    if (!buffer)
+    if (fd < 0 || !(buffer = malloc(BUFFER_SIZE + 1)))
         return NULL;
 
-    bytes_read = 1;  // Initialize to 1 to enter the loop
-    while (bytes_read > 0)
+    // Read data into the buffer
+    while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0)
     {
-        bytes_read = read(fd, buffer, 250);  // Read up to 250 bytes
-        if (bytes_read < 0)  // Check for read error
+        buffer[bytes_read] = '\0';
+        // Append the buffer content to the remainder
+        remainders[fd] = remainders[fd] ? ft_strjoin(remainders[fd], buffer) : ft_strdup(buffer);
+
+        // Look for the newline character in the remainder
+        if ((newline_pos = ft_strchr(remainders[fd], '\n')))
         {
+            // Extract the line up to the newline character
+            line = ft_substr(remainders[fd], 0, newline_pos - remainders[fd] + 1);
+            // Create a new remainder from the content after the newline
+            new_remainder = ft_strdup(newline_pos + 1);
+            free(remainders[fd]);
+            remainders[fd] = new_remainder;
             free(buffer);
-            return NULL;
-        }
-        buffer[bytes_read] = '\0';  // Null-terminate the buffer
-
-        // Get the static remainder for the current fd
-        char *remainder_fd = get_remainder_for_fd(fd);
-
-        // Append the contents of buffer to remainder_fd
-        char *new_remainder = ft_strjoin(remainder_fd, buffer);
-        free(remainder_fd);  // Free old remainder
-        remainder_fd = new_remainder;  // Update remainder_fd
-
-        // Find the newline character in the remainder_fd
-        i = 0;
-        while (remainder_fd[i] != '\n' && remainder_fd[i] != '\0')
-            i++;
-
-        // If there's a newline, return the line
-        if (remainder_fd[i] == '\n')
-        {
-            line = ft_substr(remainder_fd, 0, i + 1);  // Include newline in the line
-            char *new_remainder = ft_strdup(&remainder_fd[i + 1]);  // Keep the rest as remainder_fd
-            free(remainder_fd);  // Free the old remainder
-            remainder_fd = new_remainder;  // Update remainder_fd
-            free(buffer);  // Free the buffer
             return line;
         }
     }
 
-    // If no newline was found, return the last portion of remainder_fd
-    if (remainder_fd && *remainder_fd)
+    // If no newline found, return the remaining content
+    free(buffer);
+    if (remainders[fd] && *remainders[fd])
     {
-        line = ft_strdup(remainder_fd);
-        free(remainder_fd);
-        remainder_fd = NULL;
-        free(buffer);  // Free the buffer
+        line = ft_strdup(remainders[fd]);
+        free(remainders[fd]);
+        remainders[fd] = NULL;
         return line;
     }
 
-    free(buffer);  // Free the buffer
-    return NULL;  // Return NULL if no data was read
+    return NULL;
+}
+
+void read_file(int fd, const char *filename)
+{
+    char *line;
+
+    printf("\nReading from %s:\n", filename);
+    while ((line = get_next_line_bonus(fd)) != NULL)
+    {
+        printf("%s", line);  // Print the line
+        free(line);  // Free the memory allocated by get_next_line_bonus
+    }
+}
+
+int main()
+{
+    int fd1, fd2;
+
+    // Open two files for reading
+    fd1 = open("file1.txt", O_RDONLY);
+    if (fd1 < 0)
+    {
+        perror("Error opening file1.txt");
+        return 1;
+    }
+
+    fd2 = open("file2.txt", O_RDONLY);
+    if (fd2 < 0)
+    {
+        perror("Error opening file2.txt");
+        close(fd1);
+        return 1;
+    }
+
+    // Read and print lines from the first file
+    read_file(fd1, "file1.txt");
+
+    // Read and print lines from the second file
+    read_file(fd2, "file2.txt");
+
+    // Close both files
+    close(fd1);
+    close(fd2);
+
+    return 0;
 }
