@@ -40,25 +40,25 @@ char *ft_strjoin(char const *s1, char const *s2)
 {
     size_t len1 = ft_strlen(s1);
     size_t len2 = ft_strlen(s2);
-    char *result = malloc(len1 + len2 + 1);  // +1 for the null terminator
+    char *result = malloc(len1 + len2 + 1);
     if (!result)
         return NULL;
     for (size_t i = 0; i < len1; i++)
         result[i] = s1[i];
     for (size_t i = 0; i < len2; i++)
         result[len1 + i] = s2[i];
-    result[len1 + len2] = '\0';  // Null-terminate the string
+    result[len1 + len2] = '\0';
     return result;
 }
 
-// ft_substr: Extracts a substring from a string
+
 char *ft_substr(char const *s, unsigned int start, size_t len)
 {
     if (!s)
         return NULL;
     size_t str_len = ft_strlen(s);
     if (start >= str_len)
-        return ft_strdup("");  // Return an empty string if start is beyond the string length
+        return ft_strdup("");
     if (len > str_len - start)
         len = str_len - start;
     char *substr = malloc(len + 1);
@@ -66,7 +66,7 @@ char *ft_substr(char const *s, unsigned int start, size_t len)
         return NULL;
     for (size_t i = 0; i < len; i++)
         substr[i] = s[start + i];
-    substr[len] = '\0';  // Null-terminate the substring
+    substr[len] = '\0';
     return substr;
 }
 
