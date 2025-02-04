@@ -1,44 +1,54 @@
-void read_file(int fd, const char *filename)
+#include <fcntl.h>
+#include "ft_get_next_line.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+#ifndef
+    #define BUFFER 1024
+#endif
+typedef struct s_line
 {
+    char *content;
+    struct s_line *next;
+}t_line
+
+ft_get_next_line_bonus(int fd)
+{
+    char memory[BUFFER + 1];
     char *line;
 
-    printf("\nReading from %s:\n", filename);
-    while ((line = get_next_line_bonus(fd)) != NULL)
-    {
-        printf("%s", line);  // Print the line
-        free(line);  // Free the memory allocated by get_next_line_bonus
-    }
+    if(!memory)
+        store_chunks(memory, fd);
+    if(!memory)
+        return NULL;
+    line = get_line(&memory);
+    
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    int fd1, fd2;
-
-    // Open two files for reading
-    fd1 = open("file1.txt", O_RDONLY);
-    if (fd1 < 0)
+    if(argc != 3)
     {
-        perror("Error opening file1.txt");
-        return 1;
+        fprintf(stderr, "./usage file1 file2");
+        return (1);
     }
+    char *file_name1 = argv[1];
+    char *file_name2 = argv[2];
+    int fd1;
+    int fd2;
 
-    fd2 = open("file2.txt", O_RDONLY);
-    if (fd2 < 0)
+    fd1 = open(file_name1, O_RDONLY);
+    
+    fd2 = open(file_name2, O_RDONLY);
+    if (!fd1 || !fd2)
     {
-        perror("Error opening file2.txt");
+        perror("Failed to open for either file1 or file2\n");
         close(fd1);
-        return 1;
+        close(fd2);
+        return (0);
     }
-
-    // Read and print lines from the first file
-    read_file(fd1, "file1.txt");
-
-    // Read and print lines from the second file
-    read_file(fd2, "file2.txt");
-
-    // Close both files
-    close(fd1);
-    close(fd2);
-
-    return 0;
+    if(ft_get_next_line_bonus())
+    {
+        
+    }
 }
