@@ -92,8 +92,9 @@ void process_buffer(char **stash, const char *buffer, int bytes_read) {
     *stash = join_and_free(*stash, buffer);
 }
 
+static char *stash[1024] = {NULL};
+
 char *get_next_line(int fd) {
-    static char *stash[1024] = {NULL};
     char buffer[BUFFER_SIZE + 1];
     int bytes_read;
     
@@ -111,6 +112,15 @@ char *get_next_line(int fd) {
         char *line = find_newline(&stash[fd]);
         if (line)
             return line;
+    }
+}
+
+void free_stash(void) {
+    for (int i = 0; i < 1024; i++) {
+        if (stash[i]) {
+            free(stash[i]);
+            stash[i] = NULL;
+        }
     }
 }
 
@@ -133,5 +143,6 @@ int main(int argc, char **argv) {
     }
     
     close(fd);
+    free_stash();
     return 0;
 }
