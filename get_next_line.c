@@ -1,110 +1,92 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <stdio.h>
-#ifndef BUFFER_SIZE
-#define BUFFER_SIZE 42
-#endif
+#include "get_next_line.h"
 
-static char	*extract_line(char *buffer);
-static void	shift_buffer(char *buffer);
-static int	find_newline(const char *buffer);
 
-/**
- * get_next_line - Reads a file line by line using a static buffer.
- * @fd: File descriptor to read from.
- * 
- * Return: A dynamically allocated string containing a line, or NULL if EOF.
- */
-char *get_next_line(int fd)
+
+void safe_malloc(char **ptr)
 {
-	static char	buffer[BUFFER_SIZE + 1];
-	char		*line;
-	ssize_t		bytes_read;
-
-	if (fd < 0 || BUFFER_SIZE <= 0)
-		return (NULL);
-	while (!find_newline(buffer))
+	if(*ptr != NULL)
 	{
-		bytes_read = read(fd, buffer + find_newline(buffer), BUFFER_SIZE - find_newline(buffer));
-		if (bytes_read <= 0)
-			break;
-		buffer[bytes_read] = '\0';
+		free(*ptr);
+		ptr = NULL;
 	}
-	if (!buffer[0])  // No data left to read
+}
+char	*get_leftover(char *memory)
+{
+	char	*leftover;
+	size_t	jump;
+	size_t	len;
+
+	len = ft_strclen(memory, '\0');
+	jump = ft_strclen(memory, '\n');
+	if (memory[jump] == '\n')
+		jump++;
+	leftover = ft_strndup(memory + jump, len - jump + 1);
+	if (!leftover)
 		return (NULL);
-	line = extract_line(buffer);
-	shift_buffer(buffer);
-	return (line);
+	free(memory);
+	return (leftover);
 }
 
-/**
- * extract_line - Extracts the next line from the buffer.
- * @buffer: The static buffer containing file content.
- * 
- * Return: A dynamically allocated string containing the next line.
- */
-static char *extract_line(char *buffer)
+char	*get_line(char *memory)
 {
-	int		len = 0;
 	char	*line;
+	size_t	len;
 
-	while (buffer[len] && buffer[len] != '\n')
+	len = ft_strclen(memory, '\n');
+	if (memory[len] == '\n')
 		len++;
-	if (buffer[len] == '\n')
-		len++;
-	line = (char *)malloc(len + 1);
+	line = ft_strndup(memory, len);
 	if (!line)
 		return (NULL);
-	for (int i = 0; i < len; i++)
-		line[i] = buffer[i];
-	line[len] = '\0';
 	return (line);
 }
 
-/**
- * shift_buffer - Shifts the buffer content after extracting a line.
- * @buffer: The static buffer to shift.
- */
-static void shift_buffer(char *buffer)
+char	*store_chunks(int fd, char *memory)
 {
-	int i = 0, j = 0;
+	char	*chunk;
+	ssize_t	bytes;
 
-	while (buffer[i] && buffer[i] != '\n')
-		i++;
-	if (buffer[i] == '\n')
-		i++;
-	while (buffer[i])
-		buffer[j++] = buffer[i++];
-	buffer[j] = '\0';
-}
-
-/**
- * find_newline - Checks if there's a newline character in the buffer.
- * @buffer: The buffer to search.
- * 
- * Return: 1 if newline exists, 0 otherwise.
- */
-static int find_newline(const char *buffer)
-{
-	for (int i = 0; buffer[i]; i++)
-		if (buffer[i] == '\n')
-			return (1);
-	return (0);
-}
-
-int main()
-{
-	int fd = open("text.txt", O_RDONLY);
-	char *line;
-
-	if (fd < 0)
-		return (1);
-	while ((line = get_next_line(fd)))
+	bytes = 1;
+	chunk = (char *)ft_calloc(BUFFER_SIZE + 1, sizeof(char));
+	if (!chunk)
+		return (NULL);
+	while (bytes > 0 && !ft_strchr(memory, '\n'))
 	{
-		printf("%s", line);
-		free(line);
+		bytes = read(fd, chunk, BUFFER_SIZE);
+		if (bytes == 0)
+			break ;
+		if (bytes == -1)
+		{
+			free(chunk);
+			return (NULL);
+		}
+		chunk[bytes] = '\0';
+		memory = ft_strjoin(memory, chunk);
 	}
-	close(fd);
-	return (0);
+	free(chunk);
+	if (ft_strclen(memory, '\0') > 0)
+		return (memory);
+	return (NULL);
+}
+
+char	*get_next_line(int fd)
+{
+	static char	*memory;
+	char		*line;
+
+	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, memory, 0))
+		return (NULL);
+	memory = store_chunks(fd, memory);
+	if (!memory)
+		return (NULL);
+	if(!buffer[fd])
+		buffer[fd] = ft_strdup(""); 
+	line = get_line(memory);
+	memory = get_leftover(memory);
+	if (!memory[0])
+	{
+		free(memory);
+		memory = NULL;
+	}
+	return (line);
 }

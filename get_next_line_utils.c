@@ -1,182 +1,142 @@
-#include <unistd.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <stdio.h>
-
-#ifndef BUFFER_SIZE
-#define BUFFER_SIZE 45
-#endif
-
-typedef struct s_node
+#include "get_next_line.h"
+    void ft_bzero(void *s, size_t n)
 {
-    char data[BUFFER_SIZE];
-    struct s_node *next;
-} t_node;
+    char *ptr;
 
-static t_node *nodes[1024] = {NULL};
-
-static char *extract_line(t_node **head, int *line_length);
-static void shift_buffer(t_node **head, int *line_length);
-static int find_newline(t_node *head);
-
-int get_next_line(int fd, char **line)
-{
-    t_node *current = nodes[fd];
-    t_node *new_node;
-    int bytes_read;
-    int line_length = 0;
-    
-    // If no nodes exist for this file descriptor, initialize the first node
-    if (!current)
+    ptr = (char *)s;
+    while (n > 0)
     {
-        current = malloc(sizeof(t_node));
-        if (!current)
-            return (-1);
-        current->next = NULL;
-        nodes[fd] = current;
+        *ptr = '\0';
+        ptr++;
+        n--;
     }
-
-    // Read and store data in the linked list until a newline is found or EOF is reached
-    while ((bytes_read = read(fd, current->data, BUFFER_SIZE)) > 0)
-    {
-        current->data[bytes_read] = '\0';
-        
-        if (find_newline(current))
-            break;
-
-        // Allocate a new node for the next chunk of data
-        new_node = malloc(sizeof(t_node));
-        if (!new_node)
-            return (-1);
-        new_node->next = NULL;
-        current->next = new_node;
-        current = new_node;
-    }
-
-    // If nothing was read, return NULL (EOF or error)
-    if (bytes_read <= 0 && !current->data[0])
-        return (0);
-
-    // Extract the line
-    *line = extract_line(&nodes[fd], &line_length);
-    if (!*line)
-        return (-1);
-
-    // Shift the buffer (advance to the next chunk)
-    shift_buffer(&nodes[fd], &line_length);
-
-    return (1);
 }
 
-// Function to check if a newline exists in the current node data
-static int find_newline(t_node *head)
+void *ft_calloc(size_t count, size_t size)
 {
-    int i = 0;
-    while (head && head->data[i])
-    {
-        if (head->data[i] == '\n')
-            return (1);
-        i++;
-    }
-    return (0);
-}
+    void *ptr;
 
-// Function to concatenate the chunks into a single line
-static char *extract_line(t_node **head, int *line_length)
-{
-    t_node *current = *head;
-    int len = 0;
-    char *line;
-    int i, j;
-
-    // Calculate the length of the line by traversing the nodes
-    while (current)
-    {
-        i = 0;
-        while (current->data[i] && current->data[i] != '\n')
-        {
-            len++;
-            i++;
-        }
-        if (current->data[i] == '\n')
-        {
-            len++;  // Include the newline
-            break;
-        }
-        current = current->next;
-    }
-
-    // Allocate memory for the line
-    line = malloc(len + 1);
-    if (!line)
+    ptr = malloc(count * size);
+    if (!ptr)
         return (NULL);
-
-    // Fill the line with data
-    current = *head;
-    i = 0;
-    while (current)
-    {
-        j = 0;
-        while (current->data[j] && current->data[j] != '\n')
-        {
-            line[i++] = current->data[j++];
-        }
-        if (current->data[j] == '\n')
-        {
-            line[i++] = current->data[j];
-            break;
-        }
-        current = current->next;
-    }
-    line[i] = '\0';
-    *line_length = len;
-    return (line);
+    ft_bzero(ptr, count * size);
+    return (ptr);
 }
 
-// Function to shift the buffer forward (removes the processed data)
-static void shift_buffer(t_node **head, int *line_length)
+char	*ft_strchr(const char *s, int c)
 {
-    t_node *current = *head;
-    t_node *next_node;
-    int i = *line_length;
+	size_t	i;
+
+	i = 0;
+	if (!s)
+		return (NULL);
+	while (s[i])
+	{
+		if (s[i] == c)
+			return ((char *)s + i);
+		i++;
+	}
+	return (NULL);
+}
+
+
+char *ft_strdup(const char *src)
+{
+    char *str;
+    size_t len;
+
+    len = 0;
+    while (src[len])
+        len++;
+    str = malloc(len + 1);
+    if (!str)
+        return (NULL);
+    while (*src)
+        *str++ = *src++;
+    *str = '\0';
+    return (str - len);
+}
+
+char	*ft_strjoin(char *s1, const char *s2)
+{
+	size_t	i;
+	size_t	size;
+	char	*res;
+
+	i = 0;
+	size = 0;
+	if (s1)
+		size = ft_strclen(s1, '\0');
+	size += ft_strclen(s2, '\0') + 1;
+	res = (char *)malloc(size);
+	if (!res)
+		return (NULL);
+	if (s1)
+		while (s1[i])
+			*(res++) = s1[i++];
+	res -= ft_strclen(s1, '\0');
+	while (*s2)
+		res[i++] = *(s2++);
+	res[i] = '\0';
+	if (s1)
+		free(s1);
+	return (res);
+}
+size_t	ft_strclen(const char *s, int c)
+{
+	size_t	i;
+
+	i = 0;
+	if (!s)
+		return (0);
+	while (s[i] && s[i] != c)
+		i++;
+	return (i);
+}
+
+char	*ft_strndup(const char *s, size_t n)
+{
+	char	*dup;
+	size_t	i;
+
+	i = 0;
+	dup = (char *)malloc(n + 1);
+	if (!dup)
+		return (NULL);
+	while (s[i] && i < n)
+	{
+		dup[i] = s[i];
+		i++;
+	}
+	dup[i] = '\0';
+	return (dup);
+}
+
+void *ft_memcpy(void *dst, const void *src, size_t n)
+{
+    unsigned char *d;
+    const unsigned char *s;
     
-    // Traverse the linked list and remove the used data
-    while (current && i > 0)
-    {
-        int j = 0;
-        while (current->data[j] && i > 0)
-        {
-            if (current->data[j] == '\n')
-                return;  // Stop if newline is found
-            i--;
-            j++;
-        }
-        next_node = current->next;
-        free(current);
-        current = next_node;
-    }
-    *head = current;
+    if (!dst && !src)
+        return (NULL);
+    if (!n)
+        return (dst);
+        
+    d = (unsigned char *)dst;
+    s = (const unsigned char *)src;
+    
+    while (n-- > 0)
+        *d++ = *s++;
+        
+    return (dst);
 }
 
-#include <stdio.h>
-#include <fcntl.h>
-
-int get_next_line(int fd, char **line);
-
-int main()
+size_t ft_strlen(char *str)
 {
-    int fd = open("text.txt", O_RDONLY);
-    char *line;
+    int i;
 
-    if (fd < 0)
-        return (1);
-
-    while (get_next_line(fd, &line) > 0)
-    {
-        printf("Line: %s\n", line);
-        free(line);  // Don't forget to free the line!
-    }
-
-    close(fd);
-    return (0);
+    i = 0;
+    while(str[i])
+        i++;
+    return i;
 }
