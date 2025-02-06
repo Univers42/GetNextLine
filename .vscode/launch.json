@@ -9,7 +9,6 @@
       "stopAtEntry": false,
       "externalConsole": false,
       "cwd": "/home/dyl-syzygy/myGithub/Universe42/Milestone1/GetNextLine",
-      "environment": [],
       "program": "/home/dyl-syzygy/myGithub/Universe42/Milestone1/GetNextLine/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
