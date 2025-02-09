@@ -50,7 +50,7 @@ char *get_next_line(int fd) {
 }
 
 int main() {
-    int fd = open("text.txt", O_RDONLY);
+    int fd = open("test.txt", O_RDONLY);
     if (fd < 0) {
         perror("open");
         return 1;
