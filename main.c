@@ -3,6 +3,11 @@
 #include <time.h>
 #include <stdio.h>
 
+
+char *to_fill_buff(int fd)
+{
+    
+}
 int main(void)
 {
     int fd1, fd2;

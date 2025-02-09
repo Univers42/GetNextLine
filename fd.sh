@@ -1,1 +1,0 @@
-ls /proc/$pid/fd
