@@ -1,27 +1,62 @@
 #include "get_next_line.h"
 
+char *get_line(char *str)
+{
+    int i = 0;
+    while (str[i] && str[i] != '\n')
+        i++;
+    char *line = (char *)malloc(i + 2);
+    if (!line)
+        return NULL;
+    for (int j = 0; j <= i; j++)
+        line[j] = str[j];
+    line[i + 1] = '\0';
+    return line;
+}
+
+char *trim_remainder(char *str)
+{
+    int i = 0, j = 0;
+    while (str[i] && str[i] != '\n')
+        i++;
+    if (!str[i])
+    {
+        free(str);
+        return NULL;
+    }
+    char *remainder = (char *)malloc(ft_strlen(str) - i);
+    if (!remainder)
+        return NULL;
+    i++; // Skip '\n'
+    while (str[i])
+        remainder[j++] = str[i++];
+    remainder[j] = '\0';
+    free(str);
+    return remainder;
+}
+
 char *get_next_line(int fd)
 {
-    static char *r;
-    char *b, *l, *nr;
-    int br;
-    size_t i;
+    static char *storage;  // Stores leftover content (allowed in bonus)
+    char buffer[BUFFER_SIZE + 1];
+    char *line;
+    int bytes_read;
 
-    if (fd < 0 || !(b = malloc(251)))
+    if (fd < 0 || BUFFER_SIZE <= 0)
         return NULL;
-    br = 1;
-    while (br > 0)
+
+    while (!ft_strchr(storage, '\n') && (bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0)
     {
-        if ((br = read(fd, b, 250)) < 0)
-            return (free(b), NULL);
-        *(b + br) = '\0';
-        r = r ? ft_strjoin(r, b) : ft_strdup(b);
-        i = 0;
-        while (*(r + i) && *(r + i) != '\n')
-            i++;
-        if (*(r + i) == '\n')
-            return (l = ft_substr(r, 0, i + 1), nr = ft_strdup(r + i + 1),
-                    free(r), r = nr, free(b), l);
+        buffer[bytes_read] = '\0';
+        storage = ft_strjoin(storage, buffer);
     }
-    return (l = r ? ft_strdup(r) : NULL, free(r), r = NULL, free(b), l);
+    if (!storage || *storage == '\0')
+    {
+        free(storage);
+        storage = NULL;
+        return NULL;
+    }
+    line = get_line(storage);
+    storage = trim_remainder(storage);
+    return line;
 }
