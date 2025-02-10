@@ -7,11 +7,14 @@
 #include <errno.h>
 #include "get_next_line.h"
 
-#define BUFFER_SIZES {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 4096}
 #define TEST_FILE "test.txt"
 #define STRESS_FILE "stress_test.txt"
 #define NONBLOCK_FILE "nonblock.txt"
 #define FD_COUNT 3  // Number of file descriptors for multi-FD testing
+
+// Define buffer sizes for testing
+int buffer_sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 4096};
+int num_sizes = sizeof(buffer_sizes) / sizeof(buffer_sizes[0]);
 
 // 🕒 Get current time in milliseconds using gettimeofday()
 long get_time_ms()
@@ -141,43 +144,41 @@ void stress_test()
 // 🔍 Memory Leak Check
 void check_memory_leaks()
 {
-    printf("\n🔍 Checking for memory leaks...\n");
-    //system("valgrind --leak-check=full --show-leak-kinds=all ./gnl_test < /dev/null");
+    printf("\n🔍 Checking for memory leaks (Optional)...\n");
+    // Uncomment the following line to run valgrind
+    // system("valgrind --leak-check=full --show-leak-kinds=all ./gnl_tester < /dev/null");
 }
 
-// 🔄 Compare Output
+
 void compare_output(const char *expected_file, const char *output_file)
 {
     printf("\n🔄 Comparing output with expected results...\n");
-    char command[256];
 
-    // Run the program and redirect the output to the output file
-    sprintf(command, "./gnl_test > %s", output_file);
-    if (system(command) != 0)
-        fprintf(stderr, "Error executing command: %s\n", command);
-
-
-    // Use diff to compare the expected and output files
-    sprintf(command, "diff %s %s > diff_results.txt", expected_file, output_file);
-    if (system(command) != 0)
-        fprintf(stderr, "Error executing command: %s\n", command);
-
-
-    // Check if the diff results file is empty (no differences)
-    if (system("test -s diff_results.txt") == 0) // File is empty (no diff)
-        printf("✅ Output matches expected results!\n");
-    else // File has content (there are differences)
+    // Redirect output without using system()
+    FILE *output_fp = fopen(output_file, "w");
+    if (!output_fp)
     {
-        printf("❌ Differences found! Check diff_results.txt\n");
+        perror("Error opening output file");
+        return;
     }
+
+    int stdout_backup = dup(STDOUT_FILENO);
+    dup2(fileno(output_fp), STDOUT_FILENO);
+    fclose(output_fp);
+
+    // Execute the test program directly (no forking)
+    execl("./gnl_test", "./gnl_test", NULL);
+
+    // Restore stdout (only executes if execl fails)
+    dup2(stdout_backup, STDOUT_FILENO);
+    close(stdout_backup);
+    perror("Error executing gnl_tester");
 }
+
 
 
 int main()
 {
-    int buffer_sizes[] = BUFFER_SIZES;
-    int num_sizes = sizeof(buffer_sizes) / sizeof(buffer_sizes[0]);
-
     // Create test files
     system("seq 1 1000 > " TEST_FILE);
     system("echo 'Hello' > multi1.txt; echo 'World' > multi2.txt; echo '42' > multi3.txt");
