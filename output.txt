@@ -1,0 +1,56 @@
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=1
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=1)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=2
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=2)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=4
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=4)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=8
+✅ Read 1000 lines in 2 ms (BUFFER_SIZE=8)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=16
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=16)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=32
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=32)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=64
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=64)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=128
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=128)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=256
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=256)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=512
+✅ Read 1000 lines in 2 ms (BUFFER_SIZE=512)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=1024
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=1024)
+
+⏱️ Benchmarking test.txt with BUFFER_SIZE=4096
+✅ Read 1000 lines in 1 ms (BUFFER_SIZE=4096)
+
+🔄 Comparing output with expected results...
+✅ Output matches expected results!
+
+🔹 Testing Multiple File Descriptors...
+[FD 3] Hello
+[FD 4] World
+[FD 5] 42
+✅ Multi-FD Test Passed!
+
+🚀 Running Stress Test (1M+ lines)...
+
+⏱️ Benchmarking stress_test.txt with BUFFER_SIZE=1024
+✅ Read 1000000 lines in 1256 ms (BUFFER_SIZE=1024)
+✅ Stress Test Passed!
+
+🔄 Testing Non-Blocking Mode (O_NONBLOCK)...
+✅ Non-blocking read correctly returned nothing.
+
+🔍 Checking for memory leaks...

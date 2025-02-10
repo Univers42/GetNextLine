@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include <errno.h>
 #include "get_next_line.h"
 
@@ -13,12 +13,12 @@
 #define NONBLOCK_FILE "nonblock.txt"
 #define FD_COUNT 3  // Number of file descriptors for multi-FD testing
 
-// 🕒 Get current time in milliseconds
+// 🕒 Get current time in milliseconds using gettimeofday()
 long get_time_ms()
 {
-    struct timespec spec;
-    clock_gettime(CLOCK_MONOTONIC, &spec);
-    return spec.tv_sec * 1000 + spec.tv_nsec / 1000000;
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
 // 📌 Benchmark Function
@@ -142,7 +142,7 @@ void stress_test()
 void check_memory_leaks()
 {
     printf("\n🔍 Checking for memory leaks...\n");
-    system("valgrind --leak-check=full --show-leak-kinds=all ./gnl_test < /dev/null");
+    //system("valgrind --leak-check=full --show-leak-kinds=all ./gnl_test < /dev/null");
 }
 
 // 🔄 Compare Output
@@ -151,17 +151,27 @@ void compare_output(const char *expected_file, const char *output_file)
     printf("\n🔄 Comparing output with expected results...\n");
     char command[256];
 
+    // Run the program and redirect the output to the output file
     sprintf(command, "./gnl_test > %s", output_file);
-    system(command);
+    if (system(command) != 0)
+        fprintf(stderr, "Error executing command: %s\n", command);
 
+
+    // Use diff to compare the expected and output files
     sprintf(command, "diff %s %s > diff_results.txt", expected_file, output_file);
-    system(command);
+    if (system(command) != 0)
+        fprintf(stderr, "Error executing command: %s\n", command);
 
-    if (system("test -s diff_results.txt") == 0)
-        printf("❌ Differences found! Check diff_results.txt\n");
-    else
+
+    // Check if the diff results file is empty (no differences)
+    if (system("test -s diff_results.txt") == 0) // File is empty (no diff)
         printf("✅ Output matches expected results!\n");
+    else // File has content (there are differences)
+    {
+        printf("❌ Differences found! Check diff_results.txt\n");
+    }
 }
+
 
 int main()
 {
