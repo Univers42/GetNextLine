@@ -1,58 +1,101 @@
 #include "get_next_line.h"
-void ft_calloc(size_t nmemb, size_t size)
-{
-    if(nmemb <= 0 || size <= 0)
-        return ;
-    malloc(nmemb * size);
-}
-size_t ft_strlen(char *str)
-{
-    int i;
 
-    i = 0;
-    while(*str)
-        i++;
-    return i;
-}
-char *strlcpy(char *dest, const char *src, size_t dsize)
+size_t	ft_strclen(const char *s, int c)
 {
-    int len_src;
-    char *cpy;
+	size_t	i;
 
-    cpy = dest;
-    len_src = ft_strlen(src);
-    if(!src || dsize >= len_src)
-        return NULL;
-
-    while(dsize--)
-        *cpy++ = *src++;
-    return (ft_strlen(len_src))
-}
-char *strchr(char *str, int c)
-{
-    while(*str)
-    {
-        if(*str == c)
-            return (str);
-    }
+	i = 0;
+	if (!s)
+		return (0);
+	while (s[i] && s[i] != c)
+		i++;
+	return (i);
 }
 
-char *ft_strjoin(char *src, char *dest)
+char	*ft_strchr(const char *s, int c)
 {
-    char *result;
-    char *cpy;
-    size_t src_len;
-    size_t dest_len;
+	size_t	i;
 
-    src_len = ft_strlen(src);
-    dest_len = ft_strlen(dest);
-    result = malloc(src_len + dest_len + 1);
-    cpy = result;
-    while(*src)
-        *result++ = *src++;
-    while(*dest)
-        *result++ = *dest++;
-    *result = '\0';
-    
-    return (cpy);
+	i = 0;
+	if (!s)
+		return (NULL);
+	while (s[i])
+	{
+		if (s[i] == c)
+			return ((char *)s + i);
+		i++;
+	}
+	return (NULL);
+}
+
+char	*ft_strndup(const char *s, size_t n)
+{
+	char	*dup;
+	size_t	i;
+
+	i = 0;
+	dup = (char *)malloc(n + 1);
+	if (!dup)
+		return (NULL);
+	while (s[i] && i < n)
+	{
+		dup[i] = s[i];
+		i++;
+	}
+	dup[i] = '\0';
+	return (dup);
+}
+
+
+//char	*ft_strjoin(char *s1, const char *s2)
+//{
+//    char *new_str, *ptr;
+//    int len1 = 0, len2 = 0;
+//
+//    if (s1)
+//        while (*(s1 + len1)) 
+//            len1++;
+//    while (*(s2 + len2)) 
+//        len2++;
+//
+//    new_str = malloc(len1 + len2 + 1);
+//    if (!new_str)
+//        return NULL;
+//
+//    ptr = new_str;
+//
+//    while (s1 && *s1)  
+//        *ptr++ = *s1++;
+//    while (*s2)  
+//        *ptr++ = *s2++;
+//
+//    *ptr = '\0';
+//
+//    free(s1 - len1);
+//    return new_str;
+//}
+
+// Efficient string join with memory reallocation
+char	*ft_strjoin(char *s1, const char *s2)
+{
+	size_t	len1 = (s1) ? ft_strclen(s1, '\0') : 0;
+	size_t	len2 = ft_strclen(s2, '\0');
+	char	*new_str = (char *)malloc(len1 + len2 + 1);
+	size_t	i = 0, j = 0;
+
+	if (!new_str)
+		return (NULL);
+	if (s1)
+	{
+		while (s1[i])
+		{
+			new_str[i] = s1[i];
+			i++;
+		}
+		free(s1);
+	}
+	while (s2[j])
+		new_str[i++] = s2[j++];
+	new_str[i] = '\0';
+	return (new_str);
 }

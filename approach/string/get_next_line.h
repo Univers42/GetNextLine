@@ -1,14 +1,20 @@
+#ifndef GET_NEXT_LINE_H
+# define GET_NEXT_LINE_H
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <sys/types.h>
+# include <sys/stat.h>
+# include <fcntl.h>
 
-#ifndef GNL_H
-#define GNL_H
+# ifndef BUFFER_SIZE
+#  define BUFFER_SIZE 1000000000
+# endif
 
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-#ifndef BUFFER_SIZE
-# define BUFFER_SIZE 3
-#endif
+char	*get_next_line(int fd);
+size_t	ft_strclen(const char *s, int c);
+char	*ft_strchr(const char *s, int c);
+char	*ft_strndup(const char *s, size_t n);
+char	*ft_strjoin(char *s1, const char *s2);
 
-    
 #endif
