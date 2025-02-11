@@ -1,90 +1,103 @@
 #include "get_next_line.h"
 
-char *fill_line(char *str)
+char *get_line(char *buffer)
 {
-    char *next_line;
-    while()
-}
-int verif_end_line(char *str)
-{
-    ft_strchr(str, '\n');
-    return (0);
-}
-// we assume that everything is correct. With this line we have already the line until \n
-char *store_chunks(int fd, char *line)
-{
-    ssize_t bytes_read;
-    char *chunk;
-    
-    chunk = calloc(sizeof(char), BUFFER_SIZE);
-    if(!chunk)
-        return NULL;
-    while(bytes_read > 0 && !ft_strchr(line, '\n'))
+    ssize_t len;
+    char *new_line;
+
+    len = 0;
+    if(!buffer)
     {
-        bytes_read = read(fd, chunk, BUFFER_SIZE - 1);
-        if(bytes_read < 0)
-        {
-            free(chunk);
-            return NULL;
-        }
-        chunk[bytes] = '\0';
-        line = ft_strjoin(line, chunk);
+        fprintf(stderr, "the buffer is empty, nothing to copy");
+        return NULL;
     }
-    free(chunk);
-
+    len = ft_strclen(buffer, '\n');
+    if (buffer[len] == '\n')
+        len++;
+    new_line =  ft_strndup(buffer, len);
+    if (!new_line)
+        return (NULL);
+    return (new_line);     
 }
-
-char *get_line(char *line)
+/**
+ * question that rise !
+ * wha
+ * 
+ */
+char *fill_chunks(int fd, char *buffer)
 {
-    char *line;
-    size_t len;
 
-    len = ft_strclen(memory, '\n');
-    if(memory[len] == '\n')
-        len++:
-    
+    char *new_line;
+    ssize_t bytes;
+
+    new_line = malloc(BUFFER_SIZE + 1);
+    if(fd < 0)
+    {
+        fprintf(stderr, "Error with the file fd");
+        return (NULL);
+    }
+    if(!buffer)
+    {
+        fprintf(stderr, "");
+        return 1;
+    }
+    while(bytes > 0 && ft_strchr(buffer, '\n'))
+    {
+        bytes = read(fd, buffer, BUFFER_SIZE - 1);
+        if(bytes == 0)
+            break;
+        if (bytes < 0)
+        {
+            free(new_line);
+            return  (NULL);
+        }
+        *(buffer + bytes) = '\0';
+        buffer = ft_strjoin(buffer, new_line);
+    }
+    free(buffer);
+    if (ft_strclen(buffer, '\0') > 0)
+        return (buffer);
+    return (NULL);
 }
+
+/**
+ * [] fill the buffer
+ * [] duplicate it
+ * [] liberate the memory
+ */
 char *get_next_line(int fd)
 {
-    int bytes_read;
-    char *cup_buffer;
+    static char *buffer;
     char *line;
-    cup_buffer = calloc(4, sizeof(char));
-    if (cup_buffer == NULL)
+    
+    if(fd < 0 || BUFFER_SIZE <= 0)
         return (NULL);
-    line = get_line;
-    bytes_read = read(fd, cup_buffer, BUFFER_SIZE - 1);
-    if (bytes_read <= 0)
-    {
-        free(cup_buffer);
+    buffer = fill_chunks(fd, buffer);
+    if(!buffer)
         return (NULL);
-    }
-    cup_buffer[bytes_read] = '\0';
-    return (cup_buffer);
+    //we liberate the buffer duplicating it safely
+    buffer = get_line(buffer);
+
+    if(!line)
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
+    static char *line;
+    ssize_t size;
     int fd;
-    char *next_line;
-    int count;
-
-    count = 0;
-    fd = open("text.txt", O_RDONLY);
-    if (fd == -1)
+    
+    if(argc !=  2)
     {
-        printf("Error opening file\n");
+        fprintf(stderr, "./usage file.txt");
         return (1);
     }
-    while (1)
+    fd = open(argv[1], O_RDONLY);
+    
+
+    while(size = get_next_line(fd))
     {
-        next_line = get_next_line(fd);
-        if (next_line == NULL)
-            break;
-        count++;
-        printf("[%d]:%s\n", count, next_line);
-        free(next_line);
+               
     }
-    close(fd);
     return (0);
 }
