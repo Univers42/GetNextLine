@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": false,
-      "cwd": "/home/dlesieur/documents/new_organization_git/full_universe42/Milestone1/GetNextLine",
-      "program": "/home/dlesieur/documents/new_organization_git/full_universe42/Milestone1/GetNextLine/build/Debug/outDebug",
+      "cwd": "/home/dyl-syzygy/universe42/Milestone1/GetNextLine",
+      "program": "/home/dyl-syzygy/universe42/Milestone1/GetNextLine/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
