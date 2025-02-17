@@ -134,6 +134,20 @@
 //    return line;
 //}
 
+
+// Optimized function to join strings with dynamic allocation
+//static char *str_join(char *s1, char *s2)
+//{
+//    int len1 = (s1) ? strlen(s1) : 0;
+//    int len2 = strlen(s2);
+//    char *new_str = realloc(s1, len1 + len2 + 1); // Reallocate existing memory
+//
+//    if (!new_str)
+//        return NULL;
+//
+//    memcpy(new_str + len1, s2, len2 + 1); // Append new content
+//    return new_str;
+//}
 #include "get_next_line.h"
 #include <string.h>
 #include <stdlib.h>
@@ -154,20 +168,6 @@ static int find_newline(char *str)
     }
     return -1;  // No newline found
 }
-
-// Optimized function to join strings with dynamic allocation
-//static char *str_join(char *s1, char *s2)
-//{
-//    int len1 = (s1) ? strlen(s1) : 0;
-//    int len2 = strlen(s2);
-//    char *new_str = realloc(s1, len1 + len2 + 1); // Reallocate existing memory
-//
-//    if (!new_str)
-//        return NULL;
-//
-//    memcpy(new_str + len1, s2, len2 + 1); // Append new content
-//    return new_str;
-//}
 
 // Reads from fd and stores data in memory efficiently
 static char *store_chunks(int fd, char *memory)

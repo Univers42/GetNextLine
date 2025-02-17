@@ -1,64 +1,9 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
-
-#define BUFFER_SIZE 4  // Set the buffer size (3 bytes + 1 for null terminator)
-
-// Circular Stack Node
-typedef struct s_node {
-    char *data;
-    struct s_node *next;
-} t_node;
-
-// Circular Stack Structure
-typedef struct s_stack {
-    t_node *top;
-    size_t size;
-} t_stack;
-
-// Function to create a new stack
-t_stack *create_stack() {
-    t_stack *stack = malloc(sizeof(t_stack));
-    if (!stack) return NULL;
-    stack->top = NULL;
-    stack->size = 0;
-    return stack;
-}
-
-// Function to push data onto the stack
-void push(t_stack *stack, char *data) {
-    t_node *node = malloc(sizeof(t_node));
-    if (!node) return;
-    node->data = data;
-    node->next = stack->top;
-    stack->top = node;
-    stack->size++;
-}
-
-// Function to pop data from the stack
-char *pop(t_stack *stack) {
-    if (stack->top == NULL) return NULL;
-    t_node *node = stack->top;
-    char *data = node->data;
-    stack->top = node->next;
-    free(node);
-    stack->size--;
-    return data;
-}
-
-// Function to free the stack
-void free_stack(t_stack *stack) {
-    while (stack->top != NULL) {
-        char *data = pop(stack);
-        free(data);
-    }
-    free(stack);
-}
+#include "get_next_line.h"
 
 // Function to read the next line using a circular stack
-char *get_next_line(int fd, t_stack *stack) {
-    static char buffer[BUFFER_SIZE];  // Buffer to hold data
+char *get_next_line(int fd) {
+    static t_stack stack = {NULL};  // Static stack to keep track of data
+    static char buffer[BUFFER_SIZE];
     int bytes_read;
     char *line = malloc(1);  // Allocate initial space for line
     int line_len = 0;
@@ -78,11 +23,11 @@ char *get_next_line(int fd, t_stack *stack) {
             new_data[i] = buffer[i];
         }
         new_data[bytes_read] = '\0';
-        push(stack, new_data);
+        push(&stack, new_data);  // Assuming push function uses stack as a pointer
 
         // Process the stack and check for a newline
-        while (stack->top != NULL) {
-            char *data = pop(stack);
+        while (stack.top != NULL) {
+            char *data = pop(&stack);  // Assuming pop function uses stack as a pointer
             for (int i = 0; data[i] != '\0'; i++) {
                 line_len++;
                 line = realloc(line, line_len + 1);
@@ -111,28 +56,29 @@ char *get_next_line(int fd, t_stack *stack) {
     return line;
 }
 
-int main(void) {
-    int fd = open("text.txt", O_RDONLY);
-    if (fd == -1) {
-        printf("Error opening file\n");
-        return 1;
-    }
 
-    t_stack *stack = create_stack();
-    if (!stack) {
-        close(fd);
-        return 1;
-    }
-
-    int count = 0;
-    char *next_line;
-    while ((next_line = get_next_line(fd, stack)) != NULL) {
-        count++;
-        printf("[%d]: %s\n", count, next_line);
-        free(next_line);  // Free the allocated memory for the line
-    }
-
-    free_stack(stack);  // Free the stack nodes
-    close(fd);
-    return 0;
-}
+//int main(void) {
+//    int fd = open("text.txt", O_RDONLY);
+//    if (fd == -1) {
+//        printf("Error opening file\n");
+//        return 1;
+//    }
+//
+//    t_stack *stack = create_stack();
+//    if (!stack) {
+//        close(fd);
+//        return 1;
+//    }
+//
+//    int count = 0;
+//    char *next_line;
+//    while ((next_line = get_next_line(fd, stack)) != NULL) {
+//        count++;
+//        printf("[%d]: %s\n", count, next_line);
+//        free(next_line);  // Free the allocated memory for the line
+//    }
+//
+//    free_stack(stack);  // Free the stack nodes
+//    close(fd);
+//    return 0;
+//}
