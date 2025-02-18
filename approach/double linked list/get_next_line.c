@@ -1,160 +1,93 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include "get_next_line.h"
+#include <string.h>
 
-#define BUFFER_SIZE 4  // Set the buffer size (3 bytes + 1 for null terminator)
-
-// Doubly Linked List Node
-typedef struct s_node {
-    char *data;          // The data for the node (a chunk of text)
-    struct s_node *prev; // Pointer to the previous node
-    struct s_node *next; // Pointer to the next node
-} t_node;
-
-// Doubly Linked List Structure
-typedef struct s_list {
-    t_node *head;  // The first node in the list
-    t_node *tail;  // The last node in the list
-    size_t size;   // Number of nodes in the list
-} t_list;
-
-// Function to create a new node
-t_node *new_node(char *data) {
-    t_node *node = malloc(sizeof(t_node));
-    if (!node) return NULL;
-    node->data = data;
-    node->prev = NULL;
-    node->next = NULL;
-    return node;
-}
-
-// Function to create a new doubly linked list
-t_list *create_list() {
-    t_list *list = malloc(sizeof(t_list));
-    if (!list) return NULL;
-    list->head = NULL;
-    list->tail = NULL;
-    list->size = 0;
-    return list;
-}
-
-// Function to append a node to the doubly linked list
-void append(t_list *list, char *data) {
-    t_node *node = new_node(data);
-    if (!node) return;
-    if (list->tail) {
-        list->tail->next = node;
-        node->prev = list->tail;
-        list->tail = node;
-    } else {
-        list->head = node;
-        list->tail = node;
-    }
-    list->size++;
-}
-
-// Function to remove and free the first node from the list
-char *remove_head(t_list *list) {
-    if (list->head == NULL) return NULL;
-    t_node *node = list->head;
-    char *data = node->data;
-    list->head = node->next;
-    if (list->head) {
-        list->head->prev = NULL;
-    } else {
-        list->tail = NULL;
-    }
-    free(node);
-    list->size--;
-    return data;
-}
-
-// Function to free the entire list
-void free_list(t_list *list) {
-    while (list->head != NULL) {
-        char *data = remove_head(list);
-        free(data);
-    }
-    free(list);
-}
-
-// Function to read the next line using a doubly linked list
-char *get_next_line(int fd, t_list *list) {
-    static char buffer[BUFFER_SIZE];  // Buffer to hold data from the file
+char *get_next_line(int fd)
+{
+    static t_list *head;
+    char buffer[BUFFER_SIZE + 1];
     int bytes_read;
-    char *line = malloc(1);  // Initial allocation for the line
-    int line_len = 0;
-    if (!line) return NULL;
-    line[0] = '\0';  // Initialize as an empty string
+    char *line;
 
-    // Read data from the file and append it to the doubly linked list
-    while ((bytes_read = read(fd, buffer, BUFFER_SIZE - 1)) > 0) {
-        buffer[bytes_read] = '\0';  // Null-terminate the buffer
-        char *new_data = malloc(bytes_read + 1);
-        if (!new_data) {
-            free(line);
-            return NULL;
-        }
-        for (int i = 0; i < bytes_read; i++) {
-            new_data[i] = buffer[i];
-        }
-        new_data[bytes_read] = '\0';  // Null-terminate the new chunk
-        append(list, new_data);
-
-        // Process the list to form the line
-        while (list->head != NULL) {
-            char *data = remove_head(list);  // Get the next chunk
-            for (int i = 0; data[i] != '\0'; i++) {
-                line_len++;
-                line = realloc(line, line_len + 1);  // Reallocate for the new character
-                if (!line) {
-                    free(data);
-                    return NULL;
-                }
-                line[line_len - 1] = data[i];
-                line[line_len] = '\0';  // Null-terminate the string
-
-                if (data[i] == '\n') {  // If we found a newline, return the line
-                    free(data);
-                    return line;
-                }
-            }
-            free(data);  // Free the chunk after processing it
-        }
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
+    while ((bytes_read = read(fd, buffer, BUFFER_SIZE)) > 0)
+    {
+        buffer[bytes_read] = '\0';
+        append_node(&head, create_node(buffer));
+        if (strchr(buffer, '\n'))
+            break ;
     }
-
-    // If we reach the end of the file, return the current line
-    if (bytes_read == 0 && line_len > 0) {
-        return line;
+    if (bytes_read < 0 || (bytes_read == 0 && !head))
+        return (NULL);
+    line = extract_line(&head);
+    if (line && line[0] == '\0')
+    {
+        free(line);
+        return (NULL);
     }
-
-    free(line);  // Free the line if no data was collected
-    return NULL;
+    return (line);
 }
 
-int main(void) {
-    int fd = open("text.txt", O_RDONLY);
-    if (fd == -1) {
-        printf("Error opening file\n");
-        return 1;
-    }
+char *extract_line(t_list **head)
+{
+    if (!head || !*head)
+        return (NULL);
 
-    t_list *list = create_list();
-    if (!list) {
-        close(fd);
-        return 1;
-    }
+    t_list *temp;
+    char *line;
+    size_t len = 0;
+    size_t total_len = 0;
 
-    int count = 0;
-    char *next_line;
-    while ((next_line = get_next_line(fd, list)) != NULL) {
-        count++;
-        printf("[%d]: %s\n", count, next_line);
-        free(next_line);  // Free the allocated memory for the line
+    temp = *head;
+    while (temp)
+    {
+        while (temp->content[len] != '\n' && temp->content[len] != '\0')
+            len++;
+        total_len += len;
+        if (temp->content[len] == '\n')
+        {
+            total_len++;
+            break;
+        }
+        temp = temp->next;
+        len = 0;
     }
-
-    free_list(list);  // Free the list nodes
-    close(fd);
-    return 0;
+    line = (char *)malloc(total_len + 1);
+    if (!line)
+        return (NULL);
+    temp = *head;
+    total_len = 0;
+    while (temp)
+    {
+        len = 0;
+        while (temp->content[len] != '\n' && temp->content[len] != '\0')
+            len++;
+        strncpy(line + total_len, temp->content, len);
+        total_len += len;
+        if (temp->content[len] == '\n')
+        {
+            line[total_len] = '\n';
+            total_len++;
+            break;
+        }
+        temp = temp->next;
+    }
+    line[total_len] = '\0';
+    t_list *to_free = *head;
+    *head = temp ? temp->next : NULL;
+    if (*head)
+        (*head)->prev = NULL;
+    while (to_free && to_free != temp)
+    {
+        t_list *next = to_free->next;
+        free(to_free->content);
+        free(to_free);
+        to_free = next;
+    }
+    if (temp)
+    {
+        free(temp->content);
+        free(temp);
+    }
+    return (line);
 }

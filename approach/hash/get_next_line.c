@@ -1,8 +1,7 @@
 #include "get_next_line.h"
-// Function to get the next line with hashing (avoiding duplicates)
-char *get_next_line(int fd)
-{
-    static t_hash_table ht;  // Static hash table to persist across function calls
+
+char *get_next_line(int fd) {
+    static t_hash_table ht;
     static char buffer[BUFFER_SIZE];
     int bytes_read;
     char *line = malloc(1);
@@ -12,15 +11,13 @@ char *get_next_line(int fd)
     line[0] = '\0';
 
     while ((bytes_read = read(fd, buffer, BUFFER_SIZE - 1)) > 0) {
-        buffer[bytes_read] = '\0';  // Null-terminate buffer
+        buffer[bytes_read] = '\0';
 
-        // Check if this chunk has already been processed (hash deduplication)
-        if (insert_hash(&ht, buffer) == 0) {
-            continue;  // Skip this chunk if it's a duplicate
+                if (insert_hash(&ht, buffer) == 0) {
+            continue;
         }
 
-        // Append the chunk to the line
-        for (int i = 0; i < bytes_read; i++) {
+                for (int i = 0; i < bytes_read; i++) {
             line_len++;
             line = realloc(line, line_len + 1);
             if (!line) return NULL;
@@ -28,19 +25,18 @@ char *get_next_line(int fd)
             line[line_len] = '\0';
 
             if (buffer[i] == '\n') {
-                return line;  // Return the line when newline is encountered
+                return line;
             }
         }
     }
 
     if (bytes_read == 0 && line_len > 0) {
-        return line;  // Return the line if no more data and some data exists
+        return line;
     }
 
     free(line);
-    return NULL;  // Return NULL if no line found
+    return NULL;
 }
-
 
 //int main(void) {
 //    int fd = open("text.txt", O_RDONLY);

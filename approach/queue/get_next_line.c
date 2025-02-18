@@ -1,95 +1,166 @@
 #include "get_next_line.h"
-// Function to create a new queue node
+#include <stdio.h> // Include for debug statements
 
-
-// Function to get the next line
-char *get_next_line(int fd) {
-    static t_queue queue = {NULL};  // Static queue to persist across calls
-    static char buffer[4];  // buffer to hold read data (3 bytes + 1 for null terminator)
-    int bytes_read;
-    char *line = NULL;
-    int line_len = 0;
-    char *new_data;
-
-    // Initialize line as an empty string
-    line = malloc(1);  // Allocate space for the initial null terminator
-    if (line == NULL) {
-        return NULL;  // Return NULL if malloc fails
-    }
-    line[0] = '\0';  // Initialize the string as empty
-
-    // Read file in chunks and enqueue the data
-    while ((bytes_read = read(fd, buffer, 3)) > 0) {
-        buffer[bytes_read] = '\0';  // Null-terminate the read data
-        new_data = malloc(bytes_read + 1);
-        if (new_data == NULL) {
-            free(line);
-            return NULL;  // Return NULL if malloc fails
-        }
-        for (int i = 0; i < bytes_read; i++) {
-            new_data[i] = buffer[i];
-        }
-        new_data[bytes_read] = '\0';  // Ensure null termination of new_data
-        enqueue(&queue, new_data);  // Assuming enqueue works with queue pointer
-    }
-    
-    // If no data was read and the queue is empty, we are at the end of file
-    if (bytes_read == 0 && queue.front == NULL) {
-        free(line);
-        return NULL;  // No more data, EOF
-    }
-
-    // Dequeue data to form a line
-    while (queue.front != NULL) {
-        char *data = dequeue(&queue);  // Assuming dequeue works with queue pointer
-        int i = 0;
-        while (data[i] != '\0') {
-            line_len++; // Increment line length
-            line = realloc(line, line_len + 1); // Reallocate space for the next character
-            if (line == NULL) {
-                free(data);
-                return NULL;  // Return NULL if realloc fails
-            }
-            line[line_len - 1] = data[i];
-            line[line_len] = '\0'; // Null-terminate the string
-
-            // If we encounter a newline, return the line
-            if (data[i] == '\n') {
-                free(data);  // Free the node data here
-                return line;
-            }
-            i++;
-        }
-        free(data);  // Free the data after processing it
-    }
-
-    // If no line was found (end of file), return the line we have so far
-    return line;
+size_t  ft_strlen(const char *s)
+{
+    size_t len = 0;
+    while (s[len])
+        len++;
+    return len;
 }
 
+char    *ft_strchr(const char *s, int c)
+{
+    while (*s)
+    {
+        if (*s == (char)c)
+            return (char *)s;
+        s++;
+    }
+    if (*s == (char)c)
+        return (char *)s;
+    return NULL;
+}
 
-//int main(void) {
-//    int fd = open("text.txt", O_RDONLY);
-//    if (fd == -1) {
-//        printf("Error opening file\n");
-//        return 1;
-//    }
-//
-//    t_queue *queue = create_queue();
-//    if (queue == NULL) {
-//        close(fd);
-//        return 1;
-//    }
-//
-//    int count = 0;
-//    char *next_line;
-//    while ((next_line = get_next_line(fd, queu)) != NULL) {
-//        count++;
-//        printf("[%d]: %s\n", count, next_line);
-//        free(next_line);  // Free the allocated memory for the line
-//    }
-//
-//    free_queue(queue);  // Free the queue nodes
-//    close(fd);
-//    return 0;
-//}
+char    *ft_strjoin(char *s1, char *s2)
+{
+    if (!s1 && !s2)
+        return (NULL);
+    if (!s1)
+        return strdup(s2); // Ensure valid return when s1 is NULL
+    if (!s2)
+        return strdup(s1); // Ensure valid return when s2 is NULL
+
+    size_t  len1 = ft_strlen(s1);
+    size_t  len2 = ft_strlen(s2);
+    char    *new_str = malloc(len1 + len2 + 1);
+    if (!new_str)
+        return (NULL);
+
+    memcpy(new_str, s1, len1);
+    memcpy(new_str + len1, s2, len2);
+    new_str[len1 + len2] = '\0';
+    return (new_str);
+}
+
+char    *get_next_line(int fd)
+{
+    static t_queue queue = {NULL, NULL};
+    char        *buffer;
+    ssize_t     bytes_read;
+    char        *line;
+
+    if (fd < 0 || BUFFER_SIZE <= 0)
+        return (NULL);
+
+    buffer = malloc(BUFFER_SIZE + 1);
+    if (!buffer)
+        return (NULL);
+
+    bytes_read = 1;
+    while (!queue.tail || !ft_strchr(queue.tail->data, '\n'))
+    {
+        bytes_read = read(fd, buffer, BUFFER_SIZE);
+        if (bytes_read <= 0)
+        {
+            free(buffer);
+            if (!queue.head)
+                return (NULL);
+            return extract_line_from_queue(&queue);
+        }
+        buffer[bytes_read] = '\0';
+
+        char *joined = ft_strjoin(queue.tail ? queue.tail->data : NULL, buffer);
+        if (!joined) // Prevent enqueuing NULL
+        {
+            free(buffer);
+            return (NULL);
+        }
+        if (queue.tail)
+        {
+            free(queue.tail->data);
+            queue.tail->data = joined;
+        }
+        else
+        {
+            enqueue(&queue, joined);
+        }
+    }
+    free(buffer);
+    line = extract_line_from_queue(&queue);
+    return (line);
+}
+
+void    enqueue(t_queue *queue, char *data)
+{
+    if (!data)
+        return;
+    t_node *new_node = malloc(sizeof(t_node));
+    if (!new_node)
+        return;
+    new_node->data = data;
+    new_node->next = NULL;
+    if (!queue->head)
+        queue->head = new_node;
+    else
+        queue->tail->next = new_node;
+    queue->tail = new_node;
+}
+
+char    *dequeue(t_queue *queue)
+{
+    if (!queue->head)
+        return (NULL);
+    t_node *temp = queue->head;
+    char   *data = temp->data;
+    queue->head = queue->head->next;
+    if (!queue->head)
+        queue->tail = NULL;
+    free(temp);
+    return (data);
+}
+
+void    clear_queue(t_queue *queue)
+{
+    while (queue->head)
+        free(dequeue(queue));
+}
+
+char    *extract_line_from_queue(t_queue *queue)
+{
+    if (!queue || !queue->head)
+        return (NULL);
+
+    t_node  *current = queue->head;
+    char    *line;
+    size_t  total_length = 0;
+    
+    while (current && !ft_strchr(current->data, '\n'))
+    {
+        total_length += ft_strlen(current->data);
+        current = current->next;
+    }
+    if (current)
+        total_length += (ft_strchr(current->data, '\n') - current->data + 1);
+
+    line = malloc(total_length + 1);
+    if (!line)
+        return (NULL);
+    
+    line[0] = '\0';
+    while (queue->head && total_length > 0)
+    {
+        char *temp = dequeue(queue);
+        if (temp)
+        {
+            strncat(line, temp, total_length);
+            total_length -= ft_strlen(temp);
+            free(temp);
+        }
+        else
+        {
+            break; // Avoid NULL usage
+        }
+    }
+    return (line);
+}
