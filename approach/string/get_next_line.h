@@ -6,9 +6,9 @@
 # include <sys/types.h>
 # include <sys/stat.h>
 # include <fcntl.h>
-
+# include <string.h>
 # ifndef BUFFER_SIZE
-#  define BUFFER_SIZE 1000000000
+#  define BUFFER_SIZE 10000000
 # endif
 
 char	*get_next_line(int fd);
