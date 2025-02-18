@@ -1,32 +1,16 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line_utils.c                              :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: dyl-syzygy <dyl-syzygy@student.42.fr>      +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/02/18 23:06:30 by dyl-syzygy        #+#    #+#             */
+/*   Updated: 2025/02/18 23:13:54 by dyl-syzygy       ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
-
-size_t	ft_strclen(const char *s, int c)
-{
-	size_t	i;
-
-	i = 0;
-	if (!s)
-		return (0);
-	while (s[i] && s[i] != c)
-		i++;
-	return (i);
-}
-
-char	*ft_strchr(const char *s, int c)
-{
-	size_t	i;
-
-	i = 0;
-	if (!s)
-		return (NULL);
-	while (s[i])
-	{
-		if (s[i] == c)
-			return ((char *)s + i);
-		i++;
-	}
-	return (NULL);
-}
 
 char	*ft_strndup(const char *s, size_t n)
 {
@@ -46,56 +30,71 @@ char	*ft_strndup(const char *s, size_t n)
 	return (dup);
 }
 
+int	find_newline(char *str)
+{
+	char	*ptr;
 
-//char	*ft_strjoin(char *s1, const char *s2)
-//{
-//    char *new_str, *ptr;
-//    int len1 = 0, len2 = 0;
-//
-//    if (s1)
-//        while (*(s1 + len1)) 
-//            len1++;
-//    while (*(s2 + len2)) 
-//        len2++;
-//
-//    new_str = malloc(len1 + len2 + 1);
-//    if (!new_str)
-//        return NULL;
-//
-//    ptr = new_str;
-//
-//    while (s1 && *s1)  
-//        *ptr++ = *s1++;
-//    while (*s2)  
-//        *ptr++ = *s2++;
-//
-//    *ptr = '\0';
-//
-//    free(s1 - len1);
-//    return new_str;
-//}
+	if (!str)
+		return (-1);
+	ptr = str;
+	while (*ptr)
+	{
+		if (*ptr == '\n')
+			return (ptr - str);
+		ptr++;
+	}
+	return (-1);
+}
 
-// Efficient string join with memory reallocation
+void	*ft_memmove(void *dst, const void *src, size_t len)
+{
+	unsigned char		*d;
+	const unsigned char	*s;
+
+	d = (unsigned char *)dst;
+	s = (const unsigned char *)src;
+	if (d == s)
+		return (dst);
+	if (d < s)
+	{
+		while (len--)
+			*d++ = *s++;
+	}
+	else
+	{
+		d += len;
+		s += len;
+		while (len--)
+			*--d = *--s;
+	}
+	return (dst);
+}
+
 char	*ft_strjoin(char *s1, const char *s2)
 {
-	size_t	len1 = (s1) ? ft_strclen(s1, '\0') : 0;
-	size_t	len2 = ft_strclen(s2, '\0');
-	char	*new_str = (char *)malloc(len1 + len2 + 1);
-	size_t	i = 0, j = 0;
+	int		len2;
+	int		len1;
+	char	*new_str;
+	char	*ptr;
 
-	if (!new_str)
-		return (NULL);
+	len1 = 0;
+	len2 = 0;
 	if (s1)
 	{
-		while (s1[i])
-		{
-			new_str[i] = s1[i];
-			i++;
-		}
-		free(s1);
+		while (*(s1 + len1))
+			len1++;
 	}
-	while (s2[j])
-		new_str[i++] = s2[j++];
-	new_str[i] = '\0';
+	while (*(s2 + len2))
+		len2++;
+	new_str = malloc(len1 + len2 + 1);
+	if (!new_str)
+		return (NULL);
+	ptr = new_str;
+	while (s1 && *s1)
+		*ptr++ = *s1++;
+	while (*s2)
+		*ptr++ = *s2++;
+	*ptr = '\0';
+	free(s1 - len1);
 	return (new_str);
 }
