@@ -1,0 +1,28 @@
+This is the first file.
+It contains multiple lines.
+Each line is read separately.
+````
+
+### /home/dyl-syzygy/Universe42/Milestone1/GetNextLine/approach/string/gnl_bonus/file2.txt
+
+Create a second file with random text for testing.
+
+<file>
+````plaintext
+// filepath: /home/dyl-syzygy/Universe42/Milestone1/GetNextLine/approach/string/gnl_bonus/file2.txt
+This is the second file.
+It also contains multiple lines.
+Reading lines from multiple files.
+````
+
+### /home/dyl-syzygy/Universe42/Milestone1/GetNextLine/approach/string/gnl_bonus/file3.txt
+
+Create a third file with random text for testing.
+
+<file>
+````plaintext
+// filepath: /home/dyl-syzygy/Universe42/Milestone1/GetNextLine/approach/string/gnl_bonus/file3.txt
+This is the third file.
+Testing get_next_line with multiple file descriptors.
+Each file is read line by line.
+````
