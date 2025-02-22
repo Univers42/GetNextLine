@@ -30,6 +30,23 @@ int compare_files(const char *file1, const char *file2) {
             fclose(f2);
             return 0;
         }
+        if (ch1 == '\n' && ch2 == '\r') {
+            ch2 = getc(f2);
+            if (ch2 != '\n') {
+                printf("Difference at position %d: '%c' != '%c'\n", pos, ch1, ch2);
+                fclose(f1);
+                fclose(f2);
+                return 0;
+            }
+        } else if (ch1 == '\r' && ch2 == '\n') {
+            ch1 = getc(f1);
+            if (ch1 != '\n') {
+                printf("Difference at position %d: '%c' != '%c'\n", pos, ch1, ch2);
+                fclose(f1);
+                fclose(f2);
+                return 0;
+            }
+        }
         ch1 = getc(f1);
         ch2 = getc(f2);
         pos++;
