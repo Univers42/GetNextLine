@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <string.h>
 #include "../get_next_line.h"
 #include "test_utils.h"
 
@@ -39,12 +40,33 @@ void display_success_message() {
     printf("\033[0m"); // Reset text color
 }
 
-void test_file(const char *filename, const char *expected_output_file, bool *all_tests_passed)
+void display_failure_message() {
+    printf("\033[1;31m"); // Set text color to red
+    printf("\n");
+    printf("     💥 Some Tests Failed! 💥\n");
+    printf("\n");
+    printf("         .-=========-.       \n");
+    printf("         \\'-=======-'/       \n");
+    printf("         _|   .=.   |_       \n");
+    printf("        ((|  {{1}}  |))      \n");
+    printf("         \\|   /|\\   |/       \n");
+    printf("          \\__ '`' __/        \n");
+    printf("            _`) (`_          \n");
+    printf("          _/_______\\_        \n");
+    printf("         /___________\\       \n");
+    printf("\n");
+    printf("    💔 Failure Trophy 💔     \n");
+    printf("\n");
+    printf("\033[0m"); // Reset text color
+}
+
+void test_file(const char *filename, const char *expected_output_file, bool *all_tests_passed, bool detailed)
 {
     int fd = open(filename, O_RDONLY);
     if (fd == -1)
     {
         *all_tests_passed = false;
+        if (detailed) printf("❌ Error opening file: %s\n", filename);
         return;
     }
 
@@ -52,6 +74,7 @@ void test_file(const char *filename, const char *expected_output_file, bool *all
     if (!output) {
         close(fd);
         *all_tests_passed = false;
+        if (detailed) printf("❌ Error opening output file\n");
         return;
     }
 
@@ -65,40 +88,17 @@ void test_file(const char *filename, const char *expected_output_file, bool *all
     fclose(output);
     close(fd);
 
-    if (!compare_files("outputs/temp_output.txt", expected_output_file)) {
+    if (compare_files("outputs/temp_output.txt", expected_output_file)) {
+        if (detailed) printf("✅ %s matches %s\n", filename, expected_output_file);
+    } else {
         *all_tests_passed = false;
+        if (detailed) printf("❌ %s does not match %s\n", filename, expected_output_file);
     }
 }
 
-void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed)
+void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed, bool detailed)
 {
-    const char *test_files[][2] = {
-        {"test_cases/empty.txt", "expected_output/empty.txt"},
-        FILE *expected = fopen(expected_output_file, "r");
-        if (expected) {
-            char ch;
-            while ((ch = getc(expected)) != EOF) {
-                putchar(ch);
-            }
-            fclose(expected);
-        }
-        printf("\nActual output:\n");
-        FILE *actual = fopen("outputs/temp_output.txt", "r");
-        if (actual) {
-            char ch;
-            while ((ch = getc(actual)) != EOF) {
-                putchar(ch);
-            }
-            fclose(actual);
-        }
-        printf("\n");
-        *all_tests_passed = false;
-    }
-}
-
-void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed)
-{
-    printf("\nRunning tests with BUFFER_SIZE = %zu\n", buffer_size);
+    if (detailed) printf("\nRunning tests with BUFFER_SIZE = %zu\n", buffer_size);
     const char *test_files[][2] = {
         {"test_cases/empty.txt", "expected_output/empty.txt"},
         {"test_cases/one_line.txt", "expected_output/one_line.txt"},
@@ -151,12 +151,22 @@ void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed)
     size_t num_tests = sizeof(test_files) / sizeof(test_files[0]);
 
     for (size_t i = 0; i < num_tests; i++) {
-        test_file(test_files[i][0], test_files[i][1], all_tests_passed);
+        test_file(test_files[i][0], test_files[i][1], all_tests_passed, detailed);
     }
 }
 
 int main(void)
 {
+    char choice[10];
+    bool detailed = true;
+
+    printf("Choose output type (detailed/short): ");
+    scanf("%9s", choice);
+
+    if (strcmp(choice, "short") == 0) {
+        detailed = false;
+    }
+
     display_start_message();
 
     size_t buffer_sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576};
@@ -166,11 +176,13 @@ int main(void)
     bool all_tests_passed = true;
 
     for (size_t i = 0; i < num_buffer_sizes; i++) {
-        run_tests_with_buffer_size(buffer_sizes[i], &all_tests_passed);
+        run_tests_with_buffer_size(buffer_sizes[i], &all_tests_passed, detailed);
     }
 
     if (all_tests_passed) {
         display_success_message();
+    } else {
+        display_failure_message();
     }
 
     return 0;
