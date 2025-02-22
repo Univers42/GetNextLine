@@ -6,30 +6,37 @@
 #include <string.h>
 #include "../get_next_line.h"
 #include "test_utils.h"
-
+#define RED "\033[1;31m"
+#define GREEN "\033[1;32m"
+#define RESET "\033[0m"
+#define BLUE "\033[1;34m"
+#define YELLOW "\033[1;33m"
+#define CYAN "\033[1;36m"
+#define MAGENTA "\033[1;35m"
+#define WHITE "\033[1;37m"
+#define new_line "\n"
 void display_start_message() {
-    printf("\033[1;34m"); // Set text color to blue
-    printf("  _____          _   _           _     _             \n");
-    printf(" |_   _|        | | | |         | |   (_)            \n");
-    printf("   | | _ __  ___| |_| |__   __ _| |__  _ _ __   __ _ \n");
-    printf("   | || '_ \\/ __| __| '_ \\ / _` | '_ \\| | '_ \\ / _` |\n");
-    printf("  _| || | | \\__ \\ |_| | | | (_| | | | | | | | | (_| |\n");
-    printf("  \\___/_| |_|___/\\__|_| |_|\\__,_|_| |_|_|_| |_|\\__, |\n");
-    printf("                                                __/ |\n");
-    printf("                                               |___/ \n");
-    printf("\033[0m"); // Reset text color
+    printf(YELLOW"_   .-')       ('-.          .-') _   _ .-') _      ('-.      .-') _                  _  .-')                 "new_line);
+    printf(CYAN"( '.( OO )_    ( OO ).-.     ( OO ) ) ( (  OO) )    ( OO ).-. (  OO) )                ( \\( -O )                "new_line);
+    printf(" ,--.   ,--.)  / . --. / ,--./ ,--,'   \\     .'_    / . --. / /     '._   .-'),-----.  ,------.    ,--.   ,--."new_line);
+    printf(" |   `.'   |   | \\-.  \\  |   \\ |  |\\   ,`'--..._)   | \\-.  \\  |'--...__) ( OO'  .-.  ' |   /`. '    \\  `.'  / "new_line);
+    printf(" |         | .-'-'  |  | |    \\|  | )  |  |  \\  ' .-'-'  |  | '--.  .--' /   |  | |  | |  /  | |  .-')     /  "new_line);
+    printf(" |  |'.'|  |  \\| |_.'  | |  .     |/   |  |   ' |  \\| |_.'  |    |  |    \\_) |  |\\|  | |  |_.' | (OO  \\   /   "new_line);
+    printf(" |  |   |  |   |  .-.  | |  |\\    |    |  |   / :   |  .-.  |    |  |      \\ |  | |  | |  .  '.'  |   /  /\\_  "new_line);
+    printf(" |  |   |  |   |  | |  | |  | \\   |    |  '--'  /   |  | |  |    |  |       `'  '-'  ' |  |\\  \\   `-./  /.__) "new_line);
+    printf(BLUE" `--'   `--'   `--' `--' `--'  `--'    `-------'    `--' `--'    `--'         `-----'  `--' '--'    `--'      "new_line RESET);
 }
 
 void display_success_message() {
-    printf("\033[1;32m"); // Set text color to green
+    printf(YELLOW); // Set text color to green
     printf("\n");
     printf("     ✨ All Tests Passed! ✨\n");
     printf("\n");
     printf("         .-=========-.       \n");
     printf("         \\'-=======-'/       \n");
     printf("         _|   .=.   |_       \n");
-    printf("        ((|  {{1}}  |))      \n");
-    printf("         \\|   /|\\   |/       \n");
+    printf(GREEN"        ((|  {{1}}  |))      \n");
+    printf(YELLOW"         \\|   /|\\   |/       \n");
     printf("          \\__ '`' __/        \n");
     printf("            _`) (`_          \n");
     printf("          _/_______\\_        \n");
