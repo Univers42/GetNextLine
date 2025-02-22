@@ -6,7 +6,7 @@
 /*   By: dyl-syzygy <dyl-syzygy@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 22:47:22 by dyl-syzygy        #+#    #+#             */
-/*   Updated: 2025/02/18 23:36:07 by dyl-syzygy       ###   ########.fr       */
+/*   Updated: 2025/02/22 18:24:25 by dyl-syzygy       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,14 +91,14 @@ char	*get_next_line(int fd)
 	return (line);
 }
 
-//int main(void)
-//{
-//	int fd;
-//	char *line;
-//
-//	printf("=== Testing regular file ===\n");
-//	fd = open("long_line.txt", O_RDONLY);
-//	if (fd == -1)
+////int main(void)
+////{
+////	int fd;
+////	char *line;
+////
+////	printf("=== Testing regular file ===\n");
+////	fd = open("long_line.txt", O_RDONLY);
+////	if (fd == -1)
 //	{
 //		printf("Error opening test.txt\n");
 //		return (1);

@@ -6,7 +6,7 @@
 /*   By: dyl-syzygy <dyl-syzygy@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 23:17:19 by dyl-syzygy        #+#    #+#             */
-/*   Updated: 2025/02/22 03:10:29 by dyl-syzygy       ###   ########.fr       */
+/*   Updated: 2025/02/22 17:18:03 by dyl-syzygy       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ static char	*store_chunks(int fd, char *memory)
 	buffer = malloc(BUFFER_SIZE + 1);
 	if (!buffer)
 		return (NULL);
-	while (ft_strclen(memory, '\n') || ft_strclen(memory, '\0'))
+	while (ft_strclen(memory, '\n') == 0)
 	{
 		bytes_read = read(fd, buffer, BUFFER_SIZE);
 		if (bytes_read <= 0)
