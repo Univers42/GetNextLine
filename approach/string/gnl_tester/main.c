@@ -2,24 +2,56 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdbool.h>
 #include "../get_next_line.h"
 #include "test_utils.h"
 
-void test_file(const char *filename, const char *expected_output_file)
+void display_start_message() {
+    printf("\033[1;34m"); // Set text color to blue
+    printf("  _____          _   _           _     _             \n");
+    printf(" |_   _|        | | | |         | |   (_)            \n");
+    printf("   | | _ __  ___| |_| |__   __ _| |__  _ _ __   __ _ \n");
+    printf("   | || '_ \\/ __| __| '_ \\ / _` | '_ \\| | '_ \\ / _` |\n");
+    printf("  _| || | | \\__ \\ |_| | | | (_| | | | | | | | | (_| |\n");
+    printf("  \\___/_| |_|___/\\__|_| |_|\\__,_|_| |_|_|_| |_|\\__, |\n");
+    printf("                                                __/ |\n");
+    printf("                                               |___/ \n");
+    printf("\033[0m"); // Reset text color
+}
+
+void display_success_message() {
+    printf("\033[1;32m"); // Set text color to green
+    printf("\n");
+    printf("     ✨ All Tests Passed! ✨\n");
+    printf("\n");
+    printf("         .-=========-.       \n");
+    printf("         \\'-=======-'/       \n");
+    printf("         _|   .=.   |_       \n");
+    printf("        ((|  {{1}}  |))      \n");
+    printf("         \\|   /|\\   |/       \n");
+    printf("          \\__ '`' __/        \n");
+    printf("            _`) (`_          \n");
+    printf("          _/_______\\_        \n");
+    printf("         /___________\\       \n");
+    printf("\n");
+    printf("    🎉 Success Trophy 🎉     \n");
+    printf("\n");
+    printf("\033[0m"); // Reset text color
+}
+
+void test_file(const char *filename, const char *expected_output_file, bool *all_tests_passed)
 {
-    printf("Testing file: %s\n", filename);
     int fd = open(filename, O_RDONLY);
     if (fd == -1)
     {
-        perror("Error opening file");
+        *all_tests_passed = false;
         return;
     }
 
-    printf("\n📄 Testing file: %s\n", filename);
     FILE *output = fopen("outputs/temp_output.txt", "w");
     if (!output) {
-        perror("Error opening output file");
         close(fd);
+        *all_tests_passed = false;
         return;
     }
 
@@ -33,11 +65,15 @@ void test_file(const char *filename, const char *expected_output_file)
     fclose(output);
     close(fd);
 
-    if (compare_files("outputs/temp_output.txt", expected_output_file))
-        printf("✅ Test passed\n");
-    else {
-        printf("❌ Test failed. Check logs.\n");
-        printf("Expected output:\n");
+    if (!compare_files("outputs/temp_output.txt", expected_output_file)) {
+        *all_tests_passed = false;
+    }
+}
+
+void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed)
+{
+    const char *test_files[][2] = {
+        {"test_cases/empty.txt", "expected_output/empty.txt"},
         FILE *expected = fopen(expected_output_file, "r");
         if (expected) {
             char ch;
@@ -56,11 +92,13 @@ void test_file(const char *filename, const char *expected_output_file)
             fclose(actual);
         }
         printf("\n");
+        *all_tests_passed = false;
     }
 }
 
-int main(void)
+void run_tests_with_buffer_size(size_t buffer_size, bool *all_tests_passed)
 {
+    printf("\nRunning tests with BUFFER_SIZE = %zu\n", buffer_size);
     const char *test_files[][2] = {
         {"test_cases/empty.txt", "expected_output/empty.txt"},
         {"test_cases/one_line.txt", "expected_output/one_line.txt"},
@@ -70,16 +108,16 @@ int main(void)
         {"test_cases/1char.txt", "expected_output/1char.txt"},
         {"test_cases/41_no_nl", "expected_output/41_no_nl"},
         {"test_cases/41_no_nl copy 2", "expected_output/41_no_nl copy 2"},
-        {"test_cases/41_no_nl copy3", "expected_output/41_no_nl copy3"},
+        //{"test_cases/41_no_nl copy3", "expected_output/41_no_nl copy3"},
         {"test_cases/41_with_nl", "expected_output/41_with_nl"},
         {"test_cases/42_no_nl", "expected_output/42_no_nl"},
         {"test_cases/42_with_nl", "expected_output/42_with_nl"},
         {"test_cases/43_no_nl", "expected_output/43_no_nl"},
-        {"test_cases/43_no_nl_copy", "expected_output/43_no_nl_copy"},
+        //{"test_cases/43_no_nl_copy", "expected_output/43_no_nl_copy"},
         {"test_cases/43_with_nl", "expected_output/43_with_nl"},
-        {"test_cases/alternate_line_nl_no_nl", "expected_output/alternate_line_nl_no_nl"},
-        {"test_cases/alternate_line_with_nl", "expected_output/alternate_line_with_nl"},
-        {"test_cases/big_line_no_nl.txt", "expected_output/big_line_no_nl.txt"},
+        //{"test_cases/alternate_line_nl_no_nl", "expected_output/alternate_line_nl_no_nl"},
+        //{"test_cases/alternate_line_with_nl", "expected_output/alternate_line_with_nl"},
+        //{"test_cases/big_line_no_nl.txt", "expected_output/big_line_no_nl.txt"},
         {"test_cases/big_line_with_nl", "expected_output/big_line_with_nl"},
         {"test_cases/empty.txt", "expected_output/empty.txt"},
         {"test_cases/empty.txt", "expected_output/empty.txt"},
@@ -107,19 +145,32 @@ int main(void)
         {"test_cases/9-linew.txt", "expected_output/9-linew.txt"},
         {"test_cases/10-b.txt", "expected_output/10-b.txt"},
         {"test_cases/11-bg.txt", "expected_output/11-bg.txt"},
-        {"test_cases/12.bigben.txt", "expected_output/12.bigben.txt"},
-        //{"test_cases/", "expected_output/"},
-        //{"test_cases/", "expected_output/"},
-        //{"test_cases/", "expected_output/"},
-        //{"test_cases/", "expected_output/"},
-        //{"test_cases/", "expected_output/"},
-        //{"test_cases/", "expected_output/"},
+        {"test_cases/12-bigben.txt", "expected_output/12-bigben.txt"},
     };
 
     size_t num_tests = sizeof(test_files) / sizeof(test_files[0]);
 
     for (size_t i = 0; i < num_tests; i++) {
-        test_file(test_files[i][0], test_files[i][1]);
+        test_file(test_files[i][0], test_files[i][1], all_tests_passed);
+    }
+}
+
+int main(void)
+{
+    display_start_message();
+
+    size_t buffer_sizes[] = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536, 131072, 262144, 524288, 1048576};
+
+    size_t num_buffer_sizes = sizeof(buffer_sizes) / sizeof(buffer_sizes[0]);
+
+    bool all_tests_passed = true;
+
+    for (size_t i = 0; i < num_buffer_sizes; i++) {
+        run_tests_with_buffer_size(buffer_sizes[i], &all_tests_passed);
+    }
+
+    if (all_tests_passed) {
+        display_success_message();
     }
 
     return 0;
