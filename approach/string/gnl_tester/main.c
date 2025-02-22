@@ -187,3 +187,40 @@ int main(void)
 
     return 0;
 }
+
+
+
+
+
+
+
+
+
+int main(int argc, char **argv, char **envp)
+{
+    int         fd[2];
+    pid_t pid_proc;
+    if (argc != 5)
+    {
+        printf("Usage: %s <file1> <file2> <file3> <file4>\n", argv[0]);
+        return (1);
+    }
+    
+    if (pipe(fd) == -1) {
+        printf("Error creating pipe\n");
+        return (1);
+    }
+    pid_proc = fork();
+    if (pid_proc == -1)
+    {
+        printf("Error creating child process\n");
+        return (1);
+    }
+    if (pid_proc == 0)
+        disp_error();
+    else
+    {
+        waitpid(pid_proc, NULL, 0);
+        parents(argv,envp, fd);
+    }
+}
