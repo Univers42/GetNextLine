@@ -6,7 +6,7 @@
 /*   By: dyl-syzygy <dyl-syzygy@student.42.fr>      +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/18 23:17:19 by dyl-syzygy        #+#    #+#             */
-/*   Updated: 2025/02/21 20:24:08 by dyl-syzygy       ###   ########.fr       */
+/*   Updated: 2025/02/22 03:10:29 by dyl-syzygy       ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,7 +92,7 @@ static char	*get_leftover(char *memory)
 	return (free(memory), leftover);
 }
 
-char	*get_next_line(int fd)
+char	*get_next_line_bonus(int fd)
 {
 	static t_fd_list	*fd_list = NULL;
 	t_fd_list			*fd_node;
