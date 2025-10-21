@@ -3,182 +3,107 @@
 /*                                                        :::      ::::::::   */
 /*   get_next_line.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: dlesieur <dlesieur@student.42madrid.com    +#+  +:+       +#+        */
+/*   By: dlesieur <dlesieur@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/02/18 22:47:22 by dyl-syzygy        #+#    #+#             */
-/*   Updated: 2025/02/25 20:47:06 by dlesieur         ###   ########.fr       */
+/*   Created: 2025/10/21 00:55:37 by dlesieur          #+#    #+#             */
+/*   Updated: 2025/10/21 03:00:02 by dlesieur         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
 
-static char	*ft_store_chunks(int fd, char *memory)
-{
-	char	*buffer;
-	char	*new_memory;
-	t_ssize	bytes_read;
-
-	bytes_read = 1;
-	buffer = malloc(BUFFER_SIZE + 1);
-	if (!buffer)
-		return (NULL);
-	while (ft_find_newline(memory) == -1)
-	{
-		bytes_read = read(fd, buffer, BUFFER_SIZE);
-		if (bytes_read < 0)
-			return (free(buffer), memory);
-		if (bytes_read == 0)
-			break ;
-		buffer[bytes_read] = '\0';
-		new_memory = ft_strjoin(memory, buffer);
-		if (!new_memory)
-			return (free(buffer), NULL);
-		memory = new_memory;
-	}
-	return (free(buffer), memory);
-}
-
-static char	*ft_get_line(char *memory)
-{
-	char	*line;
-	char	*ptr;
-
-	if (!memory || !*memory)
-		return (NULL);
-	ptr = memory;
-	while (*ptr && *ptr != '\n')
-		ptr++;
-	line = malloc((size_t)(ptr - memory + 2));
-	if (!line)
-		return (NULL);
-	ft_memmove(line, memory, (size_t)(ptr - memory + 1));
-	line[ptr - memory + 1] = '\0';
-	return (line);
-}
-
-static char	*ft_get_leftover(char *memory)
-{
-	char	*ptr;
-	char	*leftover;
-
-	ptr = memory;
-	while (*ptr && *ptr != '\n')
-		ptr++;
-	if (!*ptr)
-		return (free(memory), NULL);
-	leftover = ft_strndup(ptr + 1, (t_size)ft_strlen(ptr + 1));
-	return (free(memory), leftover);
-}
+static void	init(t_file *scan);
 
 char	*get_next_line(int fd)
 {
-	static char	*memory;
-	char		*line;
+	static t_file	scan;
+	t_dynstr		line;
+	t_state			st;
 
+	line = (t_dynstr){NULL, 0, 0};
 	if (fd < 0 || BUFFER_SIZE <= 0)
 		return (NULL);
-	memory = ft_store_chunks(fd, memory);
-	if (!memory)
-		return (NULL);
-	line = ft_get_line(memory);
-	memory = ft_get_leftover(memory);
-	return (line);
+	if (scan.cur == NULL || scan.end == NULL)
+	{
+		scan.cur = scan.buf;
+		scan.end = scan.buf;
+	}
+	st = scan_nl(&scan, &line, fd);
+	if (st == ST_ERR_ALLOC || st == ST_FILE_NOT_FOUND)
+		return (reset(&line, &scan));
+	if (st == ST_EOF)
+	{
+		if (line.size > 0)
+			return (line.buf);
+		return (reset(&line, &scan));
+	}
+	if (line.size == 0)
+		return (reset(&line, NULL));
+	return (line.buf);
 }
 
-//int main(void)
-//{
-//    char *line;
-//    int fd = open("test.txt", O_RDONLY);  // Example file
-//
-//    if (fd < 0)
-//        return (1);
-//
-//    while ((line = get_next_line(fd)) != NULL)
-//    {
-//        printf("%s", line);
-//        free(line); // Free each line after printing
-//    }
-//
-//    close(fd);
-//
-//    return (0);
-//}
-//int main(void)
-//{
-//	int fd;
-//	char *line;
-//
-//	printf("=== Testing regular file ===\n");
-//	fd = open("long_line.txt", O_RDONLY);
-//	if (fd == -1)
-//	{
-//		printf("Error opening test.txt\n");
-//		return (1);
-//	}
-//
-//	line = get_next_line(fd);
-//	while (line != NULL)
-//	{
-//		printf("%s", line);
-//		free(line);
-//		line = get_next_line(fd);
-//	}
-//	printf("\n\033[42mBRAVO !! You have succeed !\033[0m");
-//	free(line);
-//	close(fd);
-	// Test Case 2: Reading from stdin
-	//printf("\n=== Testing stdin ===\n");
-	//printf("Enter text (press Ctrl+D when finished):\n");
-	//line = get_next_line(STDIN_FILENO);
-	//while (line != NULL)
-	//{
-	//    printf("Received: %s", line);
-	//    free(line);
-	//    line = get_next_line(STDIN_FILENO);
-	//}
-	//free(line);  // Free the final NULL pointer
-//
-	//// Test Case 3: Multiple file descriptors
-	//printf("\n=== Testing multiple files ===\n");
-	//fd = open("test.txt", O_RDONLY);
-	//int fd2 = open("test2.txt", O_RDONLY);
-	//
-	//if (fd == -1 || fd2 == -1)
-	//{
-	//    printf("Error opening test files\n");
-	//    return (1);
-	//}
-//
-	//// Read alternating lines from both files
-	//line = get_next_line(fd);
-	//char *line2 = get_next_line(fd2);
-	//while (line != NULL && line2 != NULL)
-	//{
-	//    printf("File 1: %s", line);
-	//    printf("File 2: %s", line2);
-	//    free(line);
-	//    free(line2);
-	//    line = get_next_line(fd);
-	//    line2 = get_next_line(fd2);
-	//}
+char	*get_next_line_bonus(int fd)
+{
+	static t_file	*scan[FD_MAX] = {0};
+	t_dynstr		line;
+	t_state			st;
 
-	// Clean up remaining lines if any
-	///while (line != NULL)
-	///{
-	///    printf("File 1: %s", line);
-	///    free(line);
-	///    line = get_next_line(fd);
-	///}
-	//while (line2 != NULL)
-	//{
-	//    printf("File 2: %s", line2);
-	//    free(line2);
-	//    line2 = get_next_line(fd2);
-	//}
-	//free(line);
-	////free(line2);
-	//close(fd);
-	//close(fd2);
+	line = (t_dynstr){NULL, 0, 0};
+	if (fd < 0 || fd >= FD_MAX || BUFFER_SIZE <= 0)
+		return (NULL);
+	init(scan[fd]);
+	st = scan_nl(scan[fd], &line, fd);
+	if (st == ST_ERR_ALLOC || st == ST_FILE_NOT_FOUND)
+		return (reset(&line, scan[fd]));
+	if (st == ST_EOF)
+	{
+		if (line.size > 0)
+			return (line.buf);
+		return (reset(&line, scan[fd]));
+	}
+	if (line.size == 0)
+		return (reset(&line, NULL));
+	return (line.buf);
+}
 
-//	return (0);
-//}
+static void	init(t_file *scan)
+{
+	if (!scan)
+	{
+		scan = malloc(sizeof(t_file));
+		if (!scan)
+			return (NULL);
+		scan->cur = scan->buf;
+		scan->end = scan->buf;
+	}
+}
+
+__attribute__((weak))
+int	main(int argc, char **argv)
+{
+	char	*line;
+	int		fd;
+
+	if (argc > 2)
+		return (1);
+	if (argc == 2)
+	{
+		fd = open(argv[1], O_RDONLY);
+		if (fd < 0)
+			return (perror("open"), 1);
+	}
+	else
+		fd = 0;
+	line = get_next_line(fd);
+	while (line)
+	{
+		if (strcmp(line, "exit\n") == 0)
+			break ;
+		printf("%s", line);
+		free(line);
+		line = get_next_line(fd);
+	}
+	if (argc == 2)
+		close(fd);
+	return (0);
+}
